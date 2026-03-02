@@ -46,7 +46,11 @@ class HipblasLtInstance {
       const hipblasLtMatrixLayout_t, void *, const hipblasLtMatrixLayout_t,
       const hipblasLtMatmulAlgo_t *, void *, size_t, hipStream_t);
 
+#ifdef _WIN32
+  static constexpr const char *name = "libhipblaslt.dll";
+#else
   static constexpr const char *name = "libhipblaslt.so";
+#endif
 
   hipblasLtCreate_t hipblasLtCreate;
   hipblasLtDestroy_t hipblasLtDestroy;
@@ -71,17 +75,21 @@ class HipblasLtInstance {
 
   void loadHipBlasDylib() {
     if (dylibHandle == nullptr) {
-      // First reuse the existing handle
       dylibHandle = dlopen(name, RTLD_NOLOAD);
     }
     if (dylibHandle == nullptr) {
-      // If not found, try to load it
       dylibHandle = dlopen(name, RTLD_LOCAL | RTLD_LAZY);
     }
     if (dylibHandle == nullptr) {
       throw std::runtime_error("Could not find `" + std::string(name) +
                                "`. Make sure it is in your "
-                               "LD_LIBRARY_PATH.");
+#ifdef _WIN32
+                               "PATH, or preload it via "
+                               "rocm_sdk.preload_libraries('hipblaslt')."
+#else
+                               "LD_LIBRARY_PATH."
+#endif
+                               );
     }
     dlerror(); // Clear any existing error
 
