@@ -414,4 +414,3 @@ def normalize_path(path: str) -> str:
 
     path = os.path.abspath(path).replace("/", "\\")
     return f"\\\\?\\{path}"
- 
